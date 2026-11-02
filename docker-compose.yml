@@ -1,0 +1,31 @@
+# ==============================================================================
+# DOCKER COMPOSE CONFIGURATION FOR QDRANT
+# This file lets you run Qdrant inside a Docker container with one command:
+# docker compose up -d
+# ==============================================================================
+
+services:
+  # Name of our service
+  qdrant:
+    # Official Qdrant Docker image from Docker Hub
+    image: qdrant/qdrant:latest
+    container_name: enterprise_kb_qdrant
+    
+    # Always restart the container if it stops unexpectedly
+    restart: always
+
+    # Map the container ports to our computer's ports
+    # 6333 is the standard HTTP REST API port we use from Python and our browser
+    # 6334 is for high-performance gRPC (optional)
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+
+    # Save data to our local folder so our vectors are not lost when Docker restarts
+    volumes:
+      - ./qdrant_storage:/qdrant/storage
+
+    # Environment variables for Qdrant container
+    environment:
+      # Optional: set telemetry to false to disable sending usage statistics
+      - QDRANT__TELEMETRY_DISABLED=true
