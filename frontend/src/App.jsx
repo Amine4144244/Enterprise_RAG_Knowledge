@@ -11,7 +11,7 @@ import { PromptBar } from './components/ai-elements/PromptBar';
 import CitationInspector from './components/CitationInspector';
 import DocumentDrawer from './components/DocumentDrawer';
 import { fetchHealth, fetchDocuments, streamChatQuery } from './services/api';
-import { Brain, ArrowRight, ShieldCheck, Database, Table } from 'lucide-react';
+import { Bot, ArrowRight, ShieldCheck, Database, Table } from 'lucide-react';
 
 export default function App() {
   // ----------------------------------------------------------------------------
@@ -153,9 +153,9 @@ export default function App() {
           {messages.length === 0 && (
             <div className="text-center py-10 px-4 max-w-xl mx-auto my-auto animate-in fade-in zoom-in-95 duration-500">
               
-              {/* Brain Icon Hero */}
+              {/* Bot Icon Hero */}
               <div className="w-14 h-14 rounded-3xl bg-gradient-to-tr from-[#0071e3] to-[#42a5f5] flex items-center justify-center text-white mx-auto mb-4 shadow-apple-md shadow-blue-500/20">
-                <Brain className="w-7 h-7" />
+                <Bot className="w-7 h-7" />
               </div>
 
               <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#1d1d1f] dark:text-[#f5f5f7] mb-2">

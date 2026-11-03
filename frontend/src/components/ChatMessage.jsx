@@ -5,7 +5,7 @@
 // ==============================================================================
 
 import React, { useState } from 'react';
-import { User, Brain, Copy, Check, Sparkles, FileText, CheckCircle2 } from 'lucide-react';
+import { User, Bot, Copy, Check, Sparkles, FileText, CheckCircle2 } from 'lucide-react';
 import { Reasoning } from './ai-elements/Reasoning';
 import { ToolCall } from './ai-elements/ToolCall';
 import { CitationBadge } from './ai-elements/CitationBadge';
@@ -67,13 +67,13 @@ export default function ChatMessage({
     <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} my-3.5`}>
       <div className={`flex gap-3 max-w-3xl ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
         
-        {/* BLOCK 2: Avatar Icon */}
+        {/* BLOCK 2: Avatar Icon (AI Elements standard Bot icon) */}
         <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center ${
           isUser 
             ? 'bg-[#0071e3] text-white shadow-sm' 
             : 'bg-black/[0.05] dark:bg-white/[0.08] text-[#0071e3] dark:text-[#42a5f5]'
         }`}>
-          {isUser ? <User className="w-4 h-4" /> : <Brain className="w-4 h-4" />}
+          {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
         </div>
 
         {/* BLOCK 3: Message Body Container */}

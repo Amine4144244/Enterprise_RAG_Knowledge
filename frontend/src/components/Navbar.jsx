@@ -5,7 +5,7 @@
 // ==============================================================================
 
 import React from 'react';
-import { Database, Cpu, FolderOpen, Sun, Moon, Brain, PlusCircle } from 'lucide-react';
+import { Database, Cpu, FolderOpen, Sun, Moon, Bot, PlusCircle } from 'lucide-react';
 
 export default function Navbar({
   health,
@@ -20,10 +20,10 @@ export default function Navbar({
     <header className="sticky top-0 z-30 w-full px-4 sm:px-6 pt-3 pb-2">
       <div className="max-w-6xl mx-auto glass-material rounded-2xl px-4 py-2.5 shadow-apple-sm flex items-center justify-between transition-all">
         
-        {/* BLOCK 1: Brand & Logo with Brain Icon */}
+        {/* BLOCK 1: Brand & Logo with Bot Icon */}
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#0071e3] to-[#42a5f5] flex items-center justify-center text-white shadow-sm shadow-blue-500/20">
-            <Brain className="w-4 h-4" />
+            <Bot className="w-4 h-4" />
           </div>
           <div>
             <h1 className="text-sm font-semibold tracking-tight text-[#1d1d1f] dark:text-[#f5f5f7]">
