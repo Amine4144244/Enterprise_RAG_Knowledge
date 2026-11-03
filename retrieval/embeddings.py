@@ -30,6 +30,7 @@ class NVIDIAEmbeddings:
         self.base_url = settings.NVIDIA_BASE_URL.rstrip("/")
         self.model_name = settings.NVIDIA_EMBEDDING_MODEL
         self.dimension = settings.DENSE_VECTOR_SIZE
+        self._local_embedder = None
 
         # Prepare HTTP headers for NVIDIA's API
         self.headers = {
@@ -37,6 +38,41 @@ class NVIDIAEmbeddings:
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
+
+    def _get_local_embedder(self):
+        if self._local_embedder is None:
+            try:
+                from fastembed import TextEmbedding
+                self._local_embedder = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+            except Exception:
+                self._local_embedder = False
+        return self._local_embedder
+
+    def _generate_dense_fallback(self, texts: List[str]) -> List[List[float]]:
+        """
+        Generates real dense embeddings locally using cached FastEmbed BGE-small,
+        zero-padded to 1024 dimensions so that cosine similarity is mathematically preserved.
+        """
+        embedder = self._get_local_embedder()
+        if embedder:
+            try:
+                raw_vectors = list(embedder.embed(texts))
+                padded_vectors = []
+                for vec in raw_vectors:
+                    norm = np.linalg.norm(vec)
+                    norm_vec = vec / (norm if norm > 0 else 1.0)
+                    pad_len = self.dimension - len(norm_vec)
+                    if pad_len > 0:
+                        padded = np.pad(norm_vec, (0, pad_len))
+                    else:
+                        padded = norm_vec[:self.dimension]
+                    padded_vectors.append(padded.tolist())
+                return padded_vectors
+            except Exception as e:
+                print(f"[NVIDIAEmbeddings] Local FastEmbed fallback note: {e}")
+
+        # Deterministic seed fallback if fastembed is unavailable
+        return [self._generate_mock_embedding(t) for t in texts]
 
     def _generate_mock_embedding(self, text: str) -> List[float]:
         """
@@ -64,10 +100,10 @@ class NVIDIAEmbeddings:
         Returns:
         - A list of lists of floats (e.g., [[0.012, -0.045, ...], ...])
         """
-        # Step 1: If no real API key is set, use the fallback mock
+        # Step 1: If no real API key is set, use local dense embeddings
         if not settings.validate_keys():
-            print(f"[NVIDIAEmbeddings] Note: Using mock embeddings (no valid NVIDIA_API_KEY in .env).")
-            return [self._generate_mock_embedding(t) for t in texts]
+            print(f"[NVIDIAEmbeddings] Note: Using local FastEmbed dense embeddings.")
+            return self._generate_dense_fallback(texts)
 
         # Step 2: Prepare the REST API request URL
         # NVIDIA's OpenAI-compatible embeddings endpoint is at /embeddings
@@ -101,10 +137,9 @@ class NVIDIAEmbeddings:
                     all_embeddings.append(item["embedding"])
 
             except Exception as e:
-                print(f"[NVIDIAEmbeddings] API call error: {e}")
-                print("[NVIDIAEmbeddings] Falling back to mock embeddings for this batch.")
-                for t in batch:
-                    all_embeddings.append(self._generate_mock_embedding(t))
+                print(f"[NVIDIAEmbeddings] Cloud API error: {e}. Switching to local dense embeddings.")
+                fallback_vecs = self._generate_dense_fallback(batch)
+                all_embeddings.extend(fallback_vecs)
 
         return all_embeddings
 

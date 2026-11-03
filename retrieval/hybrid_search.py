@@ -133,6 +133,10 @@ class HybridRetriever:
             top_n=top_k
         )
 
+        # Ensure consistent source identifiers (SRC-1, SRC-2, ...) for UI citation binding
+        for idx, chunk in enumerate(reranked_chunks):
+            chunk["source_id"] = f"SRC-{idx + 1}"
+
         print(f"[HybridRetriever] Search complete! Returning top {len(reranked_chunks)} verified chunks.")
         return reranked_chunks
 
