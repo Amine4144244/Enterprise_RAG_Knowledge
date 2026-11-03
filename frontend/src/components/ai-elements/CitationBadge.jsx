@@ -1,7 +1,8 @@
 // ==============================================================================
-// AI ELEMENTS - CITATION BADGE COMPONENT (DARK ZINC WORKSPACE)
+// AI ELEMENTS - CITATION BADGE COMPONENT (DARK / LIGHT ZINC WORKSPACE)
 // Inline superscript/pill badge representing a verified source citation.
 // Clicking toggles the Citation Inspector with full provenance.
+// Fully supports dual light and dark modes with high legibility.
 // ==============================================================================
 
 import React from 'react';
@@ -23,13 +24,13 @@ export function CitationBadge({
     if (score !== undefined && score !== null) {
       const num = Number(score);
       if (num >= 0.7) {
-        return "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20";
+        return "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-500/20";
       }
       if (num >= 0.4) {
-        return "bg-indigo-500/10 text-indigo-300 border-indigo-500/30 hover:bg-indigo-500/20";
+        return "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-500/30 hover:bg-indigo-100 dark:hover:bg-indigo-500/20";
       }
     }
-    return "bg-zinc-800/80 text-zinc-300 border-zinc-700 hover:bg-zinc-700/80";
+    return "bg-zinc-100 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700/80";
   };
 
   return (

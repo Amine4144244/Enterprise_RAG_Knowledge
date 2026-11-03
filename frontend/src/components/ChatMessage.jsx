@@ -1,7 +1,8 @@
 // ==============================================================================
-// CHAT MESSAGE COMPONENT (DARK ZINC WORKSPACE SYSTEM)
+// CHAT MESSAGE COMPONENT (DARK / LIGHT ZINC WORKSPACE SYSTEM)
 // Features role-aware styling, ToolCall badge, Reasoning disclosure accordion,
 // inline CitationBadges, and bottom verified source chips.
+// Fully supports dual light and dark modes with high legibility.
 // ==============================================================================
 
 import React, { useState } from 'react';
@@ -72,7 +73,9 @@ export default function ChatMessage({
   };
 
   return (
-    <div className={`w-full py-4 border-b border-zinc-800/40 ${isUser ? 'bg-zinc-900/20' : 'bg-transparent'}`}>
+    <div className={`w-full py-4 border-b border-zinc-200/80 dark:border-zinc-800/40 transition-colors duration-150 ${
+      isUser ? 'bg-zinc-100/60 dark:bg-zinc-900/20' : 'bg-transparent'
+    }`}>
       <div className="max-w-4xl mx-auto px-4 flex gap-3.5">
         
         {/* ================================================================== */}
@@ -80,11 +83,11 @@ export default function ChatMessage({
         {/* ================================================================== */}
         <div className="flex-shrink-0 mt-0.5">
           {isUser ? (
-            <div className="w-7 h-7 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300">
+            <div className="w-7 h-7 rounded-lg bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 flex items-center justify-center text-zinc-700 dark:text-zinc-300 shadow-sm">
               <User className="w-4 h-4" />
             </div>
           ) : (
-            <div className="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-sm">
               <Brain className="w-4 h-4" />
             </div>
           )}
@@ -98,11 +101,11 @@ export default function ChatMessage({
           {/* Header Row: Role & Actions */}
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-zinc-200">
+              <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-200">
                 {isUser ? 'You' : 'Enterprise RAG Assistant'}
               </span>
               {!isUser && (
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-800/60 text-zinc-400 border border-zinc-700/40">
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-100 dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700/40">
                   NVIDIA NIM Grounded
                 </span>
               )}
@@ -112,13 +115,13 @@ export default function ChatMessage({
             {!isUser && message.content && (
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-1 text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors"
+                className="flex items-center gap-1 text-[11px] text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors"
                 title="Copy response"
               >
                 {copied ? (
                   <>
-                    <Check className="w-3 h-3 text-emerald-400" />
-                    <span className="text-emerald-400">Copied</span>
+                    <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                    <span className="text-emerald-600 dark:text-emerald-400 font-medium">Copied</span>
                   </>
                 ) : (
                   <>
@@ -152,7 +155,7 @@ export default function ChatMessage({
           )}
 
           {/* Main Message Content */}
-          <div className="text-sm text-zinc-200 leading-relaxed font-normal whitespace-pre-wrap selection:bg-indigo-500/30">
+          <div className="text-sm text-zinc-800 dark:text-zinc-200 leading-relaxed font-normal whitespace-pre-wrap selection:bg-indigo-500/20 dark:selection:bg-indigo-500/30 selection:text-indigo-900 dark:selection:text-white">
             {isUser ? (
               message.content
             ) : (
@@ -161,16 +164,16 @@ export default function ChatMessage({
 
             {/* Real-time Streaming Cursor */}
             {isStreaming && (
-              <span className="inline-block w-1.5 h-4 ml-1 bg-indigo-400 animate-pulse rounded-sm align-middle" />
+              <span className="inline-block w-1.5 h-4 ml-1 bg-indigo-600 dark:bg-indigo-400 animate-pulse rounded-sm align-middle" />
             )}
           </div>
 
           {/* Verified Citations Summary Footer */}
           {!isUser && message.citations && message.citations.length > 0 && (
-            <div className="mt-4 pt-3 border-t border-zinc-800/80">
-              <div className="flex items-center gap-1.5 text-xs text-zinc-400 mb-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="font-medium text-zinc-300">
+            <div className="mt-4 pt-3 border-t border-zinc-200 dark:border-zinc-800/80">
+              <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 mb-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span className="font-medium text-zinc-700 dark:text-zinc-300">
                   Verified Grounding Sources ({message.citations.length}):
                 </span>
               </div>
@@ -181,16 +184,16 @@ export default function ChatMessage({
                   <button
                     key={i}
                     onClick={() => onSelectCitation(c)}
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-xs text-zinc-200 transition-colors"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 text-xs text-zinc-800 dark:text-zinc-200 transition-colors shadow-sm"
                   >
                     {c.is_table ? (
-                      <TableIcon className="w-3 h-3 text-indigo-400" />
+                      <TableIcon className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
                     ) : (
-                      <FileText className="w-3 h-3 text-indigo-400" />
+                      <FileText className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
                     )}
-                    <span className="font-mono font-semibold text-indigo-300">{c.source_id}:</span>
+                    <span className="font-mono font-semibold text-indigo-600 dark:text-indigo-300">{c.source_id}:</span>
                     <span className="truncate max-w-[160px]">{c.file_name}</span>
-                    <span className="text-zinc-400 font-mono text-[10px]">
+                    <span className="text-zinc-500 dark:text-zinc-400 font-mono text-[10px]">
                       p.{c.page_numbers?.join(',') || '1'}
                     </span>
                   </button>
