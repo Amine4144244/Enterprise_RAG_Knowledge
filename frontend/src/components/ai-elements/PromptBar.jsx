@@ -1,11 +1,11 @@
 // ==============================================================================
-// AI ELEMENTS - PROMPT BAR COMPONENT
-// An AI-native input bar with auto-expanding textarea, document indicators,
-// model badge, quick suggestion pills, and tactile submit/stop states.
+// ENTERPRISE AI STUDIO - PROMPT BAR (DOCKED COMMAND INPUT)
+// Docked command-bar interface with auto-expanding textarea, model indicators,
+// keyboard shortcuts, and stream abort controls.
 // ==============================================================================
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowUp, Square, FolderOpen, Cpu, Sparkles, CornerDownLeft } from 'lucide-react';
+import { ArrowUp, Square, FolderOpen, Cpu, ShieldCheck } from 'lucide-react';
 
 export function PromptBar({
   onSendMessage,
@@ -47,12 +47,12 @@ export function PromptBar({
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 pb-4">
+    <div className="w-full max-w-4xl mx-auto px-4 pb-4 flex-shrink-0">
       <form
         onSubmit={handleSubmit}
-        className="glass-card rounded-2xl p-2.5 shadow-apple-md border border-black/[0.08] dark:border-white/[0.1] transition-all focus-within:ring-2 focus-within:ring-[#0071e3]/30"
+        className="rounded-xl border border-zinc-300 dark:border-zinc-700/80 bg-white dark:bg-zinc-900 shadow-sm p-3 focus-within:border-indigo-500 dark:focus-within:border-indigo-500 transition-all"
       >
-        {/* BLOCK 1: Textarea */}
+        {/* Text Input */}
         <textarea
           ref={textareaRef}
           rows={1}
@@ -60,57 +60,53 @@ export function PromptBar({
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Ask a question grounded in your documents, tables, or specifications..."
-          className="w-full bg-transparent border-0 resize-none outline-none text-sm text-[#1d1d1f] dark:text-[#f5f5f7] placeholder-[#86868b] px-2 py-1 max-h-36 overflow-y-auto leading-relaxed"
+          className="w-full bg-transparent border-0 resize-none outline-none text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 px-1 max-h-36 overflow-y-auto leading-relaxed"
         />
 
-        {/* BLOCK 2: Action Footer Bar */}
-        <div className="mt-2 pt-2 border-t border-black/[0.04] dark:border-white/[0.04] flex items-center justify-between">
+        {/* Action Bar */}
+        <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
           
-          {/* Left Metadata Chips */}
-          <div className="flex items-center gap-1.5 text-[11px] text-[#86868b]">
-            {/* Documents Button */}
-            <button
-              type="button"
-              onClick={onOpenDocuments}
-              className="apple-button flex items-center gap-1 px-2 py-0.5 rounded-lg bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-[#1d1d1f] dark:text-[#f5f5f7]"
-            >
-              <FolderOpen className="w-3 h-3 text-[#0071e3]" />
-              <span>{documentCount} {documentCount === 1 ? 'doc' : 'docs'}</span>
-            </button>
-
-            {/* Model Pill */}
-            <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-lg bg-black/[0.02] dark:bg-white/[0.04]">
-              <Cpu className="w-3 h-3 text-emerald-500" />
-              <span className="truncate max-w-[130px] font-mono text-[10px]">
-                {modelName}
-              </span>
-            </div>
-          </div>
-
-          {/* Right Action Buttons */}
-          <div className="flex items-center gap-2">
-            <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] text-[#86868b]">
-              <span>Press</span>
-              <kbd className="px-1 py-0.5 rounded bg-black/[0.06] dark:bg-white/[0.08] font-mono">↵</kbd>
+          {/* Metadata Chips */}
+          <div className="flex items-center gap-2 text-xs text-zinc-500">
+            {/* Document Indicator */}
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[11px] text-zinc-600 dark:text-zinc-300">
+              <FolderOpen className="w-3 h-3 text-indigo-500" />
+              <span>{documentCount} {documentCount === 1 ? 'doc' : 'docs'} in store</span>
             </span>
 
-            {/* Tactile Send / Stop Button */}
+            {/* Grounding Mode */}
+            <span className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[11px] text-zinc-600 dark:text-zinc-300">
+              <ShieldCheck className="w-3 h-3 text-emerald-500" />
+              <span>Grounded Mode</span>
+            </span>
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center gap-2">
+            <span className="hidden md:inline-flex items-center gap-1 text-[11px] text-zinc-400">
+              <span>Send</span>
+              <kbd className="px-1 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 font-mono text-[10px]">
+                ↵
+              </kbd>
+            </span>
+
+            {/* Submit / Abort Button */}
             <button
               type="submit"
               disabled={!input.trim() && !isStreaming}
-              className={`apple-button w-8 h-8 rounded-xl flex items-center justify-center transition-all ${
+              className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
                 isStreaming
-                  ? 'bg-rose-500 hover:bg-rose-600 text-white cursor-pointer shadow-sm'
+                  ? 'bg-rose-500 hover:bg-rose-600 text-white cursor-pointer shadow-xs'
                   : input.trim()
-                  ? 'bg-[#0071e3] hover:bg-[#0077ed] text-white cursor-pointer shadow-sm'
-                  : 'bg-black/[0.05] dark:bg-white/[0.08] text-[#86868b] cursor-not-allowed'
+                  ? 'bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer shadow-xs'
+                  : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed'
               }`}
-              aria-label={isStreaming ? 'Stop streaming' : 'Send message'}
+              aria-label={isStreaming ? 'Stop streaming' : 'Send query'}
             >
               {isStreaming ? (
-                <Square className="w-3.5 h-3.5 fill-current" />
+                <Square className="w-3 h-3 fill-current" />
               ) : (
-                <ArrowUp className="w-4 h-4 stroke-[2.5]" />
+                <ArrowUp className="w-3.5 h-3.5 stroke-[2.5]" />
               )}
             </button>
           </div>

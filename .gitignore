@@ -21,6 +21,7 @@ qdrant_storage/
 storage/uploads/*.pdf
 storage/cache/*.json
 server.log
+*.pdf
 
 # Test diagnostic scripts
 test_phase*.py

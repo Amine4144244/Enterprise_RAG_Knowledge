@@ -1,11 +1,11 @@
 // ==============================================================================
-// CHAT MESSAGE COMPONENT (AI ELEMENTS REDESIGN)
-// Features role-aware styling, Reasoning collapsible accordion,
-// interactive CitationBadges, and quick copy-to-clipboard actions.
+// ENTERPRISE AI STUDIO - CHAT MESSAGE COMPONENT
+// Renders user and assistant turns with ToolCall execution cards,
+// Reasoning traces, interactive CitationBadges, and copy actions.
 // ==============================================================================
 
 import React, { useState } from 'react';
-import { User, Bot, Copy, Check, Sparkles, FileText, CheckCircle2 } from 'lucide-react';
+import { User, Brain, Copy, Check, FileText, CheckCircle2 } from 'lucide-react';
 import { Reasoning } from './ai-elements/Reasoning';
 import { ToolCall } from './ai-elements/ToolCall';
 import { CitationBadge } from './ai-elements/CitationBadge';
@@ -18,7 +18,7 @@ export default function ChatMessage({
   const isUser = message.role === 'user';
   const [copied, setCopied] = useState(false);
 
-  // Copy assistant response to clipboard
+  // Copy assistant response
   const handleCopy = () => {
     if (!message.content) return;
     navigator.clipboard.writeText(message.content);
@@ -27,15 +27,14 @@ export default function ChatMessage({
   };
 
   /**
-   * BLOCK 1: Render Text with Interactive AI Elements CitationBadges
-   * Replaces [SRC-1], [SRC-2] markers with clickable color-coded badges.
+   * Render text with inline clickable CitationBadges
+   * Replaces [SRC-1], [SRC-2] markers with interactive pills.
    */
   const renderGroundedContent = (text, citations = []) => {
     if (!text) return null;
 
-    // Build lookup dictionary from source_id -> citation
     const citationMap = {};
-    (citations || []).forEach(c => {
+    (citations || []).forEach((c) => {
       citationMap[c.source_id] = c;
     });
 
@@ -58,38 +57,35 @@ export default function ChatMessage({
         );
       }
 
-      // Plain text part
       return <span key={index}>{part}</span>;
     });
   };
 
   return (
-    <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} my-3.5`}>
-      <div className={`flex gap-3 max-w-3xl ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+    <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} my-3`}>
+      <div className={`flex gap-3 max-w-4xl w-full ${isUser ? 'justify-end' : 'justify-start'}`}>
         
-        {/* BLOCK 2: Avatar Icon (AI Elements standard Bot icon) */}
-        <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center ${
+        {/* Avatar */}
+        <div className={`w-7 h-7 rounded-md flex-shrink-0 flex items-center justify-center text-xs ${
           isUser 
-            ? 'bg-[#0071e3] text-white shadow-sm' 
-            : 'bg-black/[0.05] dark:bg-white/[0.08] text-[#0071e3] dark:text-[#42a5f5]'
+            ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300' 
+            : 'bg-indigo-600 text-white shadow-xs'
         }`}>
-          {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+          {isUser ? <User className="w-3.5 h-3.5" /> : <Brain className="w-3.5 h-3.5" />}
         </div>
 
-        {/* BLOCK 3: Message Body Container */}
-        <div className="flex-1 min-w-0">
+        {/* Message Container */}
+        <div className={`flex-1 min-w-0 ${isUser ? 'max-w-xl' : ''}`}>
           
-          {/* If Assistant: Show AI Elements Tool & Reasoning Accordion */}
+          {/* If Assistant: Tool & Reasoning Traces */}
           {!isUser && (
             <>
-              {/* Tool Execution Badge */}
               <ToolCall
-                toolName="hybrid_search"
+                toolName="qdrant_hybrid_search"
                 status={isStreaming && !message.content ? "running" : "completed"}
                 resultCount={message.sources?.length || message.citations?.length || 0}
               />
 
-              {/* Collapsible Retrieval & Reasoning Trace */}
               {message.sources && message.sources.length > 0 && (
                 <Reasoning
                   sources={message.sources}
@@ -100,68 +96,73 @@ export default function ChatMessage({
             </>
           )}
 
-          {/* Message Text Bubble */}
-          <div className={`rounded-2xl px-4 py-3 shadow-apple-sm transition-all text-sm leading-relaxed ${
+          {/* Message Text Body */}
+          <div className={`rounded-lg px-4 py-3 text-xs sm:text-sm leading-relaxed border transition-colors ${
             isUser
-              ? 'bg-[#0071e3] text-white rounded-br-sm'
-              : 'glass-card text-[#1d1d1f] dark:text-[#f5f5f7] rounded-bl-sm'
+              ? 'bg-zinc-100 dark:bg-zinc-800/80 border-zinc-200 dark:border-zinc-700/80 text-zinc-900 dark:text-zinc-100 font-medium'
+              : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 shadow-xs'
           }`}>
             
-            {/* Text & Citations */}
-            <div className="whitespace-pre-wrap font-normal">
+            <div className="whitespace-pre-wrap">
               {isUser ? (
                 message.content
               ) : (
                 renderGroundedContent(message.content, message.citations)
               )}
-              
-              {/* Real-time Streaming Cursor */}
+
+              {/* Streaming Cursor */}
               {isStreaming && (
-                <span className="inline-block w-1.5 h-4 ml-1 bg-[#0071e3] animate-pulse rounded-full align-middle" />
+                <span className="inline-block w-1.5 h-3.5 ml-1 bg-indigo-500 animate-pulse rounded-full align-middle" />
               )}
             </div>
 
-            {/* BLOCK 4: Verified Citations Summary Bar */}
+            {/* Citations Footer Strip */}
             {!isUser && message.citations && message.citations.length > 0 && (
-              <div className="mt-3 pt-2.5 border-t border-black/[0.06] dark:border-white/[0.08]">
-                <div className="flex items-center justify-between text-xs text-[#86868b] dark:text-[#a1a1a6] mb-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="font-medium">Verified Sources ({message.citations.length}):</span>
-                  </div>
-
-                  {/* Copy Button */}
-                  <button
-                    onClick={handleCopy}
-                    className="apple-button flex items-center gap-1 text-[11px] text-[#86868b] hover:text-[#1d1d1f] dark:hover:text-[#f5f5f7]"
-                    title="Copy response"
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="w-3.5 h-3.5 text-emerald-500" />
-                        <span className="text-emerald-500 font-medium">Copied</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3.5 h-3.5" />
-                        <span>Copy</span>
-                      </>
-                    )}
-                  </button>
+              <div className="mt-3 pt-2.5 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="font-semibold text-[11px]">
+                    Grounding Sources ({message.citations.length}):
+                  </span>
                 </div>
 
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-1 text-[11px] text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
+                  title="Copy assistant response"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3 h-3 text-emerald-500" />
+                      <span className="text-emerald-500 font-medium">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3 h-3" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+
                 {/* Badges List */}
-                <div className="flex flex-wrap gap-1.5">
+                <div className="w-full flex flex-wrap gap-1.5 mt-1">
                   {message.citations.map((c, i) => (
                     <button
                       key={i}
                       onClick={() => onSelectCitation(c)}
-                      className="apple-button flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-xs text-[#1d1d1f] dark:text-[#f5f5f7] border border-black/[0.04] dark:border-white/[0.06]"
+                      className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-50 dark:bg-zinc-800/60 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/80 text-[11px] text-zinc-700 dark:text-zinc-300 font-mono transition-colors"
+                      title="Inspect citation"
                     >
-                      <FileText className="w-3 h-3 text-[#0071e3]" />
-                      <span className="font-semibold">{c.source_id}:</span>
-                      <span className="truncate max-w-[140px]">{c.file_name}</span>
-                      <span className="text-[#86868b] text-[11px]">(p. {c.page_numbers?.join(',')})</span>
+                      <FileText className="w-3 h-3 text-indigo-500" />
+                      <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                        {c.source_id}
+                      </span>
+                      <span className="truncate max-w-[130px] font-sans">
+                        {c.file_name}
+                      </span>
+                      <span className="text-zinc-400">
+                        (p. {c.page_numbers?.join(',')})
+                      </span>
                     </button>
                   ))}
                 </div>

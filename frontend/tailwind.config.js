@@ -8,17 +8,17 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // Apple system font stack for authentic typography
         sans: [
+          'Inter',
           '-apple-system',
           'BlinkMacSystemFont',
-          '"SF Pro Text"',
-          '"SF Pro Display"',
-          'system-ui',
+          'Segoe UI',
+          'Roboto',
           'sans-serif',
         ],
         mono: [
-          '"SF Mono"',
+          'JetBrains Mono',
+          'Fira Code',
           'ui-monospace',
           'Menlo',
           'Monaco',
@@ -26,27 +26,19 @@ export default {
         ]
       },
       colors: {
-        // Apple HIG color palette
-        apple: {
-          blue: '#0071e3',
-          'blue-hover': '#0077ed',
-          gray: {
-            50: '#f5f5f7',
-            100: '#e8e8ed',
-            200: '#d2d2d7',
-            300: '#86868b',
-            400: '#6e6e73',
-            500: '#515154',
-            800: '#1d1d1f',
-            900: '#161617'
-          }
+        brand: {
+          50: '#eef2ff',
+          100: '#e0e7ff',
+          200: '#c7d2fe',
+          300: '#a5b4fc',
+          400: '#818cf8',
+          500: '#6366f1',
+          600: '#4f46e5',
+          700: '#4338ca',
+          800: '#3730a3',
+          900: '#312e81',
+          950: '#1e1b4b',
         }
-      },
-      boxShadow: {
-        // Soft diffuse Apple-style shadow
-        'apple-sm': '0 2px 8px -1px rgba(0, 0, 0, 0.04), 0 1px 3px 0 rgba(0, 0, 0, 0.02)',
-        'apple-md': '0 8px 24px -4px rgba(0, 0, 0, 0.08), 0 4px 12px 0 rgba(0, 0, 0, 0.03)',
-        'apple-lg': '0 20px 40px -8px rgba(0, 0, 0, 0.12), 0 8px 16px 0 rgba(0, 0, 0, 0.04)',
       }
     },
   },

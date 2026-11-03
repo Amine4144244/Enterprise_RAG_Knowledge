@@ -1,11 +1,11 @@
 // ==============================================================================
 // AI ELEMENTS - CITATION BADGE COMPONENT
-// Renders an interactive, verified citation pill with confidence indicators
-// and tactile hover states.
+// Renders an interactive citation badge for grounding references.
+// Clicking it directs focus to the Evidence Inspector split-pane.
 // ==============================================================================
 
 import React from 'react';
-import { FileText, ExternalLink, Check } from 'lucide-react';
+import { FileText } from 'lucide-react';
 
 export function CitationBadge({
   sourceId,
@@ -18,27 +18,25 @@ export function CitationBadge({
     ? `${sourceId} • p. ${pageStr}`
     : sourceId;
 
-  // Confidence color-coding based on cross-encoder rerank score
+  // Confidence styling
   const getBadgeStyle = () => {
-    if (score >= 0.7) {
-      return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20";
+    if (score !== undefined && score >= 0.7) {
+      return "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50";
     }
-    if (score >= 0.4) {
-      return "bg-[#0071e3]/10 text-[#0071e3] dark:text-[#42a5f5] border-[#0071e3]/20 hover:bg-[#0071e3]/20";
-    }
-    return "bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-500/20 hover:bg-zinc-500/20";
+    return "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/50";
   };
 
   return (
     <button
+      type="button"
       onClick={() => onClick && onClick(citation)}
-      className={`apple-button inline-flex items-center gap-1 mx-1 px-2.5 py-0.5 rounded-lg text-xs font-medium border align-baseline cursor-pointer transition-all ${getBadgeStyle()}`}
-      title={citation ? `${citation.file_name} • Score: ${score || 'N/A'}` : 'View Citation'}
+      className={`inline-flex items-center gap-1 mx-1 px-2 py-0.5 rounded text-[11px] font-mono font-medium border align-baseline cursor-pointer transition-all shadow-xs ${getBadgeStyle()}`}
+      title={citation ? `${citation.file_name} • Score: ${score || 'N/A'}` : 'View Source In Inspector'}
     >
       <FileText className="w-3 h-3 flex-shrink-0" />
       <span>{label}</span>
       {score !== undefined && (
-        <span className="text-[10px] opacity-75 font-mono ml-0.5">
+        <span className="opacity-80 text-[10px]">
           ({score})
         </span>
       )}
