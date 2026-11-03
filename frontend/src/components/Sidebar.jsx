@@ -1,320 +1,378 @@
 // ==============================================================================
-// ENTERPRISE AI STUDIO - SIDEBAR (LEFT RAIL)
-// Provides document repository management, drag-and-drop PDF ingestion,
-// Qdrant vector database telemetry, and pipeline health monitoring.
+// SIDEBAR COMPONENT (DARK ZINC WORKSPACE SYSTEM)
+// Manages knowledge corpus navigation, document upload dropzone,
+// vector store telemetry, and conversation session controls.
 // ==============================================================================
 
-import React, { useRef, useState } from 'react';
-import { 
-  Brain, 
-  Plus, 
-  UploadCloud, 
-  FileText, 
-  Database, 
-  Cpu, 
-  Layers, 
-  CheckCircle2, 
-  AlertCircle, 
-  Sun, 
-  Moon, 
-  Trash2, 
-  RefreshCw,
-  Server,
+import React, { useState, useRef } from 'react';
+import {
+  Brain,
+  Plus,
+  FileText,
+  UploadCloud,
+  Database,
+  Cpu,
   ShieldCheck,
+  ChevronLeft,
   ChevronRight,
-  ChevronDown
+  Sun,
+  Moon,
+  Trash2,
+  Table as TableIcon,
+  Loader2,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
+import { uploadDocument } from '../services/api';
 
 export default function Sidebar({
   documents = [],
   collectionStats = {},
   health = {},
-  onUploadFile,
-  uploadStatus,
-  uploadMessage,
-  onRefreshDocs,
   darkMode,
   setDarkMode,
-  onClearChat,
-  onSelectDocFilter,
-  selectedDocFilter,
-  isOpen = true,
-  onClose
+  onNewChat,
+  isCollapsed,
+  setIsCollapsed,
+  onDocumentUploaded,
+  activeDocumentCount = 0
 }) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState(null); // { type: 'success' | 'error', message: string }
   const fileInputRef = useRef(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [telemetryOpen, setTelemetryOpen] = useState(true);
 
-  // Drag and drop event handlers
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
+  /**
+   * BLOCK 1: File Upload Handler
+   * Handles drag-and-drop or file selection for PDF document ingestion.
+   */
+  const handleFileUpload = async (file) => {
+    if (!file) return;
+    if (file.type !== 'application/pdf' && !file.name.endsWith('.pdf')) {
+      setUploadStatus({
+        type: 'error',
+        message: 'Only PDF documents are supported for Docling ingestion.'
+      });
+      setTimeout(() => setUploadStatus(null), 4000);
+      return;
+    }
 
-  const handleDragLeave = () => {
-    setIsDragging(false);
+    setIsUploading(true);
+    setUploadStatus(null);
+
+    try {
+      const result = await uploadDocument(file);
+      setUploadStatus({
+        type: 'success',
+        message: `Indexed "${file.name}" (${result.chunks_count || 'several'} chunks)`
+      });
+      if (onDocumentUploaded) onDocumentUploaded();
+    } catch (err) {
+      setUploadStatus({
+        type: 'error',
+        message: err.message || 'Failed to parse and index document.'
+      });
+    } finally {
+      setIsUploading(false);
+      setTimeout(() => setUploadStatus(null), 5000);
+    }
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      onUploadFile(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileUpload(e.dataTransfer.files[0]);
     }
   };
 
-  return (
-    <aside
-      className={`fixed inset-y-0 left-0 z-30 w-72 flex-shrink-0 flex flex-col bg-zinc-50 dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 transition-transform duration-200 lg:static lg:translate-x-0 ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}
-    >
-      {/* 1. Header & Brand */}
-      <div className="h-14 px-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-500/20">
-            <Brain className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 tracking-tight">
-                Enterprise KB
-              </span>
-              <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-                v1.2
-              </span>
-            </div>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-              Grounded Retrieval Studio
-            </p>
-          </div>
-        </div>
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
 
-        {/* Health Beacon */}
-        <div className="flex items-center gap-1.5">
-          <span
-            className={`w-2 h-2 rounded-full ${
-              health.qdrant_connected && health.nvidia_key_configured
-                ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50'
-                : 'bg-amber-500 animate-pulse'
-            }`}
-            title={
-              health.qdrant_connected && health.nvidia_key_configured
-                ? 'All services operational'
-                : 'Service degraded'
-            }
-          />
-        </div>
-      </div>
-
-      {/* 2. New Query Button */}
-      <div className="p-3">
-        <button
-          onClick={onClearChat}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-white text-zinc-100 dark:text-zinc-900 text-xs font-medium transition-colors shadow-sm"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>New Grounding Query</span>
-        </button>
-      </div>
-
-      {/* 3. Main Scrollable Navigation Rail */}
-      <div className="flex-1 overflow-y-auto px-3 py-1 space-y-4">
-        
-        {/* SECTION: Knowledge Base Documents */}
-        <div>
-          <div className="flex items-center justify-between px-1 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-              Documents ({documents.length})
-            </span>
-            <button
-              onClick={onRefreshDocs}
-              className="p-1 rounded text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 transition-colors"
-              title="Refresh indexed documents"
-            >
-              <RefreshCw className="w-3 h-3" />
-            </button>
-          </div>
-
-          {/* Compact PDF Dropzone */}
-          <div
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-            className={`border border-dashed rounded-lg p-3 text-center cursor-pointer transition-all ${
-              isDragging
-                ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/20'
-                : 'border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 bg-zinc-100/50 dark:bg-zinc-900/50'
-            }`}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf"
-              className="hidden"
-              onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                  onUploadFile(e.target.files[0]);
-                }
-              }}
-            />
-            <div className="flex items-center justify-center gap-2 text-zinc-600 dark:text-zinc-400 text-xs">
-              <UploadCloud className="w-4 h-4 text-indigo-500 flex-shrink-0" />
-              <span>Drop PDF or <span className="text-indigo-600 dark:text-indigo-400 font-medium">browse</span></span>
-            </div>
-
-            {uploadStatus === 'uploading' && (
-              <div className="mt-2 flex items-center justify-center gap-1.5 text-[11px] text-indigo-600 dark:text-indigo-400 animate-pulse">
-                <RefreshCw className="w-3 h-3 animate-spin" />
-                <span>Ingesting with Docling...</span>
-              </div>
-            )}
-            {uploadStatus === 'success' && (
-              <div className="mt-2 text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1">
-                <CheckCircle2 className="w-3 h-3" />
-                <span>{uploadMessage || 'Document indexed!'}</span>
-              </div>
-            )}
-            {uploadStatus === 'error' && (
-              <div className="mt-2 text-[11px] text-rose-500 flex items-center justify-center gap-1">
-                <AlertCircle className="w-3 h-3" />
-                <span className="truncate max-w-[200px]">{uploadMessage}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Document Item List */}
-          <div className="mt-2 space-y-1">
-            {documents.length === 0 ? (
-              <div className="text-center py-4 text-xs text-zinc-400">
-                No documents indexed yet
-              </div>
-            ) : (
-              documents.map((doc, idx) => {
-                const isSelected = selectedDocFilter === doc.file_name;
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => onSelectDocFilter && onSelectDocFilter(isSelected ? null : doc.file_name)}
-                    className={`group px-2.5 py-2 rounded-lg text-xs cursor-pointer flex items-center justify-between border transition-all ${
-                      isSelected
-                        ? 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-200'
-                        : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <FileText className={`w-3.5 h-3.5 flex-shrink-0 ${isSelected ? 'text-indigo-600 dark:text-indigo-400' : 'text-zinc-400'}`} />
-                      <span className="truncate font-medium">
-                        {doc.file_name}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1 flex-shrink-0 text-[10px] text-zinc-400 font-mono">
-                      <span>{doc.chunk_count} chunks</span>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* SECTION: System Telemetry & Architecture */}
-        <div className="border-t border-zinc-200 dark:border-zinc-800 pt-3">
+  // If collapsed on desktop, render a compact vertical strip
+  if (isCollapsed) {
+    return (
+      <aside className="w-16 h-screen bg-zinc-950 border-r border-zinc-800 flex flex-col items-center py-4 justify-between transition-all duration-200 z-20 flex-shrink-0">
+        <div className="flex flex-col items-center gap-4">
+          {/* Brand Icon */}
           <button
-            onClick={() => setTelemetryOpen(!telemetryOpen)}
-            className="w-full flex items-center justify-between px-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2"
+            onClick={() => setIsCollapsed(false)}
+            className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-100 hover:border-zinc-700 transition-colors"
+            title="Expand Sidebar"
           >
-            <span>Pipeline Architecture</span>
-            {telemetryOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+            <Brain className="w-5 h-5 text-indigo-400" />
           </button>
 
-          {telemetryOpen && (
-            <div className="rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 p-2.5 space-y-2 text-[11px]">
+          {/* New Chat Button */}
+          <button
+            onClick={onNewChat}
+            className="w-10 h-10 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 flex items-center justify-center text-zinc-300 hover:text-white transition-colors"
+            title="New Conversation"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+
+          {/* Documents Pill */}
+          <div
+            onClick={() => setIsCollapsed(false)}
+            className="w-10 h-10 rounded-xl bg-zinc-900/60 border border-zinc-800/80 flex items-center justify-center text-zinc-400 hover:text-zinc-200 cursor-pointer"
+            title={`${documents.length} Indexed Documents`}
+          >
+            <FileText className="w-4 h-4" />
+          </div>
+        </div>
+
+        {/* Footer Toggle */}
+        <div className="flex flex-col items-center gap-3">
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="p-2 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
+            title="Toggle Theme"
+          >
+            {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+
+          <button
+            onClick={() => setIsCollapsed(false)}
+            className="p-2 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
+            title="Expand Sidebar"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </aside>
+    );
+  }
+
+  return (
+    <aside className="w-72 h-screen bg-zinc-950 border-r border-zinc-800 flex flex-col justify-between transition-all duration-200 z-20 flex-shrink-0 select-none">
+      
+      {/* ==================================================================== */}
+      {/* TOP SECTION: Header & Actions                                       */}
+      {/* ==================================================================== */}
+      <div className="flex flex-col flex-1 min-h-0">
+        
+        {/* Brand Bar */}
+        <div className="p-4 border-b border-zinc-800/80 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-indigo-400 shadow-sm">
+              <Brain className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-semibold text-zinc-100 tracking-tight">Enterprise RAG</span>
+                <span className="px-1.5 py-0.2 rounded bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-mono text-indigo-400">
+                  v1.2
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-400 font-mono">Qdrant • Docling • NIM</p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setIsCollapsed(true)}
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
+            title="Collapse Sidebar"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Action: New Conversation */}
+        <div className="p-3">
+          <button
+            onClick={onNewChat}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800/90 border border-zinc-800 text-xs font-medium text-zinc-200 hover:text-white transition-all group"
+          >
+            <div className="flex items-center gap-2">
+              <Plus className="w-3.5 h-3.5 text-indigo-400 group-hover:scale-110 transition-transform" />
+              <span>New Conversation</span>
+            </div>
+            <kbd className="text-[10px] text-zinc-400 font-mono bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800">
+              ⌘N
+            </kbd>
+          </button>
+        </div>
+
+        {/* Scrollable Corpus & Documents Section */}
+        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-4">
+          
+          {/* Header with Document Count */}
+          <div>
+            <div className="flex items-center justify-between px-1 mb-2">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                Knowledge Corpus
+              </span>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-300">
+                {documents.length} {documents.length === 1 ? 'doc' : 'docs'}
+              </span>
+            </div>
+
+            {/* Document Ingestion Dropzone */}
+            <div
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onClick={() => fileInputRef.current && fileInputRef.current.click()}
+              className={`p-3 rounded-xl border border-dashed text-center cursor-pointer transition-all ${
+                isUploading
+                  ? 'border-indigo-500 bg-indigo-500/5'
+                  : 'border-zinc-800 hover:border-zinc-700 bg-zinc-900/40 hover:bg-zinc-900/70'
+              }`}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    handleFileUpload(e.target.files[0]);
+                  }
+                }}
+              />
+
+              {isUploading ? (
+                <div className="flex items-center justify-center gap-2 text-xs text-indigo-400 py-1">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Parsing with Docling...</span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-1 py-1">
+                  <UploadCloud className="w-5 h-5 text-zinc-400" />
+                  <span className="text-xs text-zinc-300 font-medium">Upload PDF Specification</span>
+                  <span className="text-[10px] text-zinc-400">Docling Hybrid Chunker & Tables</span>
+                </div>
+              )}
+            </div>
+
+            {/* Upload Notification Alert */}
+            {uploadStatus && (
+              <div
+                className={`mt-2 p-2 rounded-lg text-[11px] flex items-start gap-1.5 border ${
+                  uploadStatus.type === 'success'
+                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
+                    : 'bg-rose-500/10 border-rose-500/20 text-rose-300'
+                }`}
+              >
+                {uploadStatus.type === 'success' ? (
+                  <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-emerald-400" />
+                ) : (
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-rose-400" />
+                )}
+                <span className="leading-tight">{uploadStatus.message}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Ingested Documents List */}
+          <div className="space-y-1">
+            {documents.length === 0 ? (
+              <div className="p-3 text-center text-xs text-zinc-400 bg-zinc-900/30 rounded-lg border border-zinc-800/50">
+                No documents indexed yet. Upload a PDF above to begin.
+              </div>
+            ) : (
+              documents.map((doc, idx) => (
+                <div
+                  key={idx}
+                  className="p-2.5 rounded-lg bg-zinc-900/50 hover:bg-zinc-900 border border-zinc-800/60 hover:border-zinc-700/80 transition-colors group text-left"
+                >
+                  <div className="flex items-start justify-between gap-1.5">
+                    <div className="flex items-start gap-2 min-w-0">
+                      <FileText className="w-3.5 h-3.5 text-indigo-400 mt-0.5 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-zinc-200 truncate group-hover:text-white" title={doc.file_name}>
+                          {doc.file_name}
+                        </p>
+                        <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-zinc-400 font-mono">
+                          <span>{(doc.file_size_bytes / 1024).toFixed(0)} KB</span>
+                          <span>•</span>
+                          <span>Indexed</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-zinc-800/80 text-[10px] font-mono text-zinc-400 flex-shrink-0">
+                      Docling
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Infrastructure & Pipeline Telemetry */}
+          <div className="pt-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 px-1 block mb-2">
+              System Telemetry
+            </span>
+            <div className="p-2.5 rounded-lg bg-zinc-900/40 border border-zinc-800/70 space-y-2 text-[11px]">
               
               {/* Qdrant Status */}
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-zinc-500">
-                  <Database className="w-3 h-3 text-indigo-500" />
-                  <span>Qdrant Store</span>
+                <span className="text-zinc-400 flex items-center gap-1.5">
+                  <Database className="w-3.5 h-3.5 text-emerald-400" />
+                  Qdrant Vector DB
                 </span>
-                <span className="font-mono text-zinc-900 dark:text-zinc-200 font-medium">
-                  {collectionStats.points_count ?? 0} vectors
-                </span>
-              </div>
-
-              {/* Retrieval Modes */}
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-zinc-500">
-                  <Layers className="w-3 h-3 text-emerald-500" />
-                  <span>Hybrid Index</span>
-                </span>
-                <span className="font-mono text-zinc-700 dark:text-zinc-300">
-                  Dense + BM25 (RRF)
+                <span className="flex items-center gap-1 text-emerald-400 font-mono text-[10px]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  {health.qdrant_connected ? 'Online' : 'Local Disk'}
                 </span>
               </div>
 
-              {/* Cross-Encoder Reranker */}
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-zinc-500">
-                  <ShieldCheck className="w-3 h-3 text-amber-500" />
-                  <span>Reranker</span>
-                </span>
-                <span className="font-mono text-zinc-700 dark:text-zinc-300">
-                  NVIDIA NeMo NIM
-                </span>
+              {/* Hybrid Index Mode */}
+              <div className="flex items-center justify-between text-zinc-400">
+                <span>Hybrid Search</span>
+                <span className="font-mono text-[10px] text-zinc-300">Dense + BM25</span>
               </div>
 
-              {/* Generation Model */}
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-zinc-500">
-                  <Cpu className="w-3 h-3 text-purple-500" />
-                  <span>LLM</span>
+              {/* Reranker Model */}
+              <div className="flex items-center justify-between text-zinc-400">
+                <span className="flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3 text-purple-400" />
+                  Cross-Encoder
                 </span>
-                <span className="font-mono text-zinc-700 dark:text-zinc-300 truncate max-w-[120px]" title={health.llm_model || 'NVIDIA NIM'}>
-                  {health.llm_model ? health.llm_model.split('/')[1] || health.llm_model : 'Llama-3.1-70B'}
+                <span className="font-mono text-[10px] text-zinc-300">Mistral-4B</span>
+              </div>
+
+              {/* Generation LLM */}
+              <div className="flex items-center justify-between text-zinc-400">
+                <span className="flex items-center gap-1">
+                  <Cpu className="w-3 h-3 text-indigo-400" />
+                  Generation LLM
+                </span>
+                <span className="font-mono text-[10px] text-zinc-300 truncate max-w-[100px]" title={health.llm_model || 'Nemotron-70B'}>
+                  {health.llm_model ? health.llm_model.split('/')[1] : 'Nemotron-70B'}
                 </span>
               </div>
 
             </div>
-          )}
+          </div>
+
         </div>
 
       </div>
 
-      {/* 4. Footer & Actions */}
-      <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-100/50 dark:bg-zinc-900/50">
+      {/* ==================================================================== */}
+      {/* BOTTOM SECTION: User & Preferences Controls                         */}
+      {/* ==================================================================== */}
+      <div className="p-3 border-t border-zinc-800/80 bg-zinc-950 flex items-center justify-between text-xs text-zinc-400">
         
-        {/* Dark / Light Toggle */}
+        {/* Connection Pulse */}
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+          <span className="text-[11px] font-mono text-zinc-400">FastAPI :8001</span>
+        </div>
+
+        {/* Theme Switch */}
         <button
           onClick={() => setDarkMode(!darkMode)}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
-          title="Toggle appearance"
+          className="p-1.5 rounded-md hover:bg-zinc-900 text-zinc-400 hover:text-zinc-200 transition-colors"
+          title={darkMode ? "Switch to light theme" : "Switch to dark theme"}
         >
-          {darkMode ? (
-            <>
-              <Sun className="w-3.5 h-3.5 text-amber-400" />
-              <span>Light Mode</span>
-            </>
-          ) : (
-            <>
-              <Moon className="w-3.5 h-3.5 text-zinc-500" />
-              <span>Dark Mode</span>
-            </>
-          )}
-        </button>
-
-        {/* Clear Chat */}
-        <button
-          onClick={onClearChat}
-          className="p-1.5 rounded-md text-zinc-400 hover:text-rose-500 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
-          title="Clear active conversation"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
+          {darkMode ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
         </button>
 
       </div>
+
     </aside>
   );
 }

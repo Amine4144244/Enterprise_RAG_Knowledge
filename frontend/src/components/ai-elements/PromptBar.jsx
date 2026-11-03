@@ -1,19 +1,25 @@
 // ==============================================================================
-// ENTERPRISE AI STUDIO - PROMPT BAR (DOCKED COMMAND INPUT)
-// Docked command-bar interface with auto-expanding textarea, model indicators,
-// keyboard shortcuts, and stream abort controls.
+// AI ELEMENTS - PROMPT BAR COMPONENT (DARK ZINC WORKSPACE)
+// Auto-resizing textarea with keyboard shortcuts, active document indicators,
+// and tactile submit / stop streaming states.
 // ==============================================================================
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowUp, Square, FolderOpen, Cpu, ShieldCheck } from 'lucide-react';
+import {
+  ArrowUp,
+  Square,
+  FileText,
+  Cpu,
+  CornerDownLeft,
+  Command
+} from 'lucide-react';
 
 export function PromptBar({
   onSendMessage,
   isStreaming,
   onStop,
   documentCount = 0,
-  onOpenDocuments,
-  modelName = "Llama-3.1-70B"
+  modelName = "Nemotron-70B"
 }) {
   const [input, setInput] = useState('');
   const textareaRef = useRef(null);
@@ -22,7 +28,7 @@ export function PromptBar({
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 140)}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`;
     }
   }, [input]);
 
@@ -47,71 +53,76 @@ export function PromptBar({
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 pb-4 flex-shrink-0">
+    <div className="w-full max-w-4xl mx-auto px-4 pb-4">
       <form
         onSubmit={handleSubmit}
-        className="rounded-xl border border-zinc-300 dark:border-zinc-700/80 bg-white dark:bg-zinc-900 shadow-sm p-3 focus-within:border-indigo-500 dark:focus-within:border-indigo-500 transition-all"
+        className="rounded-xl p-3 bg-zinc-900/90 border border-zinc-800 shadow-xl shadow-black/40 transition-all focus-within:border-zinc-600 focus-within:ring-1 focus-within:ring-zinc-600/30"
       >
-        {/* Text Input */}
+        {/* ==================================================================== */}
+        {/* INPUT TEXTAREA                                                       */}
+        {/* ==================================================================== */}
         <textarea
           ref={textareaRef}
           rows={1}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ask a question grounded in your documents, tables, or specifications..."
-          className="w-full bg-transparent border-0 resize-none outline-none text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 px-1 max-h-36 overflow-y-auto leading-relaxed"
+          placeholder="Ask anything grounded in your enterprise PDFs, tables, or architecture specs..."
+          className="w-full bg-transparent border-0 resize-none outline-none text-sm text-zinc-100 placeholder-zinc-400 px-1 py-1 max-h-40 overflow-y-auto leading-relaxed"
         />
 
-        {/* Action Bar */}
-        <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+        {/* ==================================================================== */}
+        {/* ACTION & METADATA BAR                                                */}
+        {/* ==================================================================== */}
+        <div className="mt-2 pt-2 border-t border-zinc-800/80 flex items-center justify-between">
           
-          {/* Metadata Chips */}
-          <div className="flex items-center gap-2 text-xs text-zinc-500">
-            {/* Document Indicator */}
-            <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[11px] text-zinc-600 dark:text-zinc-300">
-              <FolderOpen className="w-3 h-3 text-indigo-500" />
-              <span>{documentCount} {documentCount === 1 ? 'doc' : 'docs'} in store</span>
-            </span>
+          {/* Active Context Chips */}
+          <div className="flex items-center gap-2 text-xs text-zinc-400">
+            {/* Active Document Indicator */}
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-800/80 text-zinc-300 font-mono text-[11px] border border-zinc-700/60">
+              <FileText className="w-3 h-3 text-indigo-400" />
+              <span>{documentCount} {documentCount === 1 ? 'doc indexed' : 'docs indexed'}</span>
+            </div>
 
-            {/* Grounding Mode */}
-            <span className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[11px] text-zinc-600 dark:text-zinc-300">
-              <ShieldCheck className="w-3 h-3 text-emerald-500" />
-              <span>Grounded Mode</span>
-            </span>
+            {/* LLM Model Pill */}
+            <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-800/40 text-zinc-400 font-mono text-[11px]">
+              <Cpu className="w-3 h-3 text-emerald-400" />
+              <span className="truncate max-w-[120px]">{modelName}</span>
+            </div>
           </div>
 
-          {/* Controls */}
+          {/* Right Controls & Send Button */}
           <div className="flex items-center gap-2">
-            <span className="hidden md:inline-flex items-center gap-1 text-[11px] text-zinc-400">
-              <span>Send</span>
-              <kbd className="px-1 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 font-mono text-[10px]">
+            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-zinc-400 font-mono">
+              <span>Press</span>
+              <kbd className="px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 text-[10px]">
                 ↵
               </kbd>
             </span>
 
-            {/* Submit / Abort Button */}
+            {/* Submit / Stop Button */}
             <button
               type="submit"
               disabled={!input.trim() && !isStreaming}
-              className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
+              className={`p-2 rounded-lg transition-all flex items-center justify-center ${
                 isStreaming
-                  ? 'bg-rose-500 hover:bg-rose-600 text-white cursor-pointer shadow-xs'
+                  ? 'bg-rose-500 hover:bg-rose-600 text-white cursor-pointer'
                   : input.trim()
-                  ? 'bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer shadow-xs'
-                  : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed'
+                  ? 'bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer shadow-md shadow-indigo-600/30'
+                  : 'bg-zinc-800 text-zinc-400 cursor-not-allowed opacity-50'
               }`}
-              aria-label={isStreaming ? 'Stop streaming' : 'Send query'}
+              title={isStreaming ? "Stop generation" : "Send query (Enter)"}
             >
               {isStreaming ? (
-                <Square className="w-3 h-3 fill-current" />
+                <Square className="w-3.5 h-3.5 fill-current" />
               ) : (
-                <ArrowUp className="w-3.5 h-3.5 stroke-[2.5]" />
+                <ArrowUp className="w-3.5 h-3.5" />
               )}
             </button>
           </div>
 
         </div>
+
       </form>
     </div>
   );
