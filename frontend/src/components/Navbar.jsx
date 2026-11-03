@@ -1,33 +1,36 @@
 // ==============================================================================
-// NAVBAR COMPONENT (Apple Floating Translucent Chrome)
-// Uses backdrop-filter blur and subtle border lighting.
+// NAVBAR COMPONENT (AI Elements & Apple Design)
+// Floating translucent header with system health, document drawer button,
+// and quick new-chat action.
 // ==============================================================================
 
 import React from 'react';
-import { Database, Cpu, FolderOpen, Sun, Moon, Layers } from 'lucide-react';
+import { Database, Cpu, FolderOpen, Sun, Moon, Brain, PlusCircle } from 'lucide-react';
 
 export default function Navbar({
   health,
   onOpenDocuments,
   documentCount = 0,
   darkMode,
-  setDarkMode
+  setDarkMode,
+  onClearChat,
+  messageCount = 0
 }) {
   return (
     <header className="sticky top-0 z-30 w-full px-4 sm:px-6 pt-3 pb-2">
       <div className="max-w-6xl mx-auto glass-material rounded-2xl px-4 py-2.5 shadow-apple-sm flex items-center justify-between transition-all">
         
-        {/* BLOCK 1: Brand & Logo */}
+        {/* BLOCK 1: Brand & Logo with Brain Icon */}
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#0071e3] to-[#42a5f5] flex items-center justify-center text-white shadow-sm shadow-blue-500/20">
-            <Layers className="w-4 h-4" />
+            <Brain className="w-4 h-4" />
           </div>
           <div>
             <h1 className="text-sm font-semibold tracking-tight text-[#1d1d1f] dark:text-[#f5f5f7]">
               Enterprise Knowledge Base
             </h1>
             <p className="text-[11px] text-[#86868b] hidden sm:block">
-              Docling + Qdrant Hybrid + NVIDIA NIM
+              Docling • Qdrant Hybrid • NVIDIA NIM
             </p>
           </div>
         </div>
@@ -57,6 +60,18 @@ export default function Navbar({
 
         {/* BLOCK 3: Action Buttons */}
         <div className="flex items-center gap-2">
+          {/* New Chat Button (visible when conversation is active) */}
+          {messageCount > 0 && (
+            <button
+              onClick={onClearChat}
+              className="apple-button flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-xs font-medium text-[#1d1d1f] dark:text-[#f5f5f7]"
+              title="Start a new conversation"
+            >
+              <PlusCircle className="w-3.5 h-3.5 text-[#0071e3]" />
+              <span className="hidden sm:inline">New Chat</span>
+            </button>
+          )}
+
           {/* Documents Drawer Trigger Button */}
           <button
             onClick={onOpenDocuments}
